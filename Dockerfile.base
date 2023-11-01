@@ -1,0 +1,13 @@
+
+# Build the app
+FROM maven:3-eclipse-temurin-8-alpine AS builder
+COPY secure /usr/app
+WORKDIR /usr/app
+RUN mvn clean install
+
+# Copy the jar and run it on entry
+FROM openjdk:8-slim
+WORKDIR /usr/src/project
+COPY --from=builder /usr/app/target/secure-1.0-SNAPSHOT.jar ./app.jar
+
+CMD ["java", "-jar", "app.jar", "--command", "CONNECTION"]
