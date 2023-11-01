@@ -41,10 +41,6 @@ public class App {
 
         // Execute the command
         try(Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DATABASE_NAME)) {
-            if (connection == null) {
-                System.out.println("Let's see");
-            }
-
             Statement statement = connection.createStatement();
             command.execute(statement);
         } catch (SQLException e) {
