@@ -4,5 +4,7 @@ public enum CommandType {
     CONNECTION,
     SELECT,
     DELETE,
-    INSERT
+    INSERT,
+    CREATE_TABLE,
+    CREATE_DATABASE
 }

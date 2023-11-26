@@ -35,7 +35,7 @@ public class App {
         }
 
         // Get the command
-        Command command = CommandFactory.create(ns.get("command"));
+        Command command = CommandFactory.create(CommandType.CREATE_TABLE);
 
         log.info("Running command {}", command.getName());
 
