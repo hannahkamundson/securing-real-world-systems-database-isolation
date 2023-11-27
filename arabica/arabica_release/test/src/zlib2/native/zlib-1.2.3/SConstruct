@@ -1,0 +1,5 @@
+normal = Environment(CCFLAGS = ['-O3', '-DHAVE_UNISTD_H'])
+
+libz = normal.StaticLibrary('libz.a', ['compress.c',  'deflate.c',  'gzio.c',  'infback.c',  'inffast.c',  'inflate.c',  'inftrees.c',  'trees.c',  'uncompr.c',  'zadler32.c',  'zcrc32.c',  'zutil.c'])
+
+Default(libz)

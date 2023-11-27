@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# --as-needed makes gcc disregard the -pthread argument that Python's
+# setup.py passes to gcc.
+exec nacl-glibc-gcc -Wl,--as-needed "$@"

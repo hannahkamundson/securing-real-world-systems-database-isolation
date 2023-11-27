@@ -1,0 +1,123 @@
+# todo:
+# - write PhonyTarget that takes source dependencies and return its node
+
+import os
+
+###############################
+# configuration
+NACL_LINKER = "/home/<username>/robustatrunk/MSNaCl/nacl-build/googleclient/native_client/install-stubout/lib/ld-linux.so.2"
+
+###############################
+# Common routines
+
+def PhonyTarget(env, target, sources, action):
+    if not env: env = DefaultEnvironment()
+    phony = env.Alias(target, sources, action);
+    AlwaysBuild(phony)
+
+###############################
+# the default target:
+#   building a new sel_ldr that can load dynamically linked object files
+
+NACL_PATH='../..'
+
+# Header file paths
+# N.B., removed /native_client/src/third_party/sdl/linux/v_1_2_13/include
+NACL_DEV_INCPATH = [NACL_PATH+'/native_client/src/third_party/gtest/files/include',
+                    NACL_PATH]
+
+NACL_LIB_PATH=NACL_PATH+'/native_client/scons-out/opt-linux-x86-32/lib'
+
+# Library paths
+NAC_DEV_LIBPATH=['usr/lib32', 'usr/lib', NACL_LIB_PATH,
+                 NACL_PATH+'/native_client/src/third_party/sdl/linux/v1_2_13/lib']
+
+# Libraries used by sel_ldr (some may not be useful for Robusta)
+NACL_DEV_LIBS=['sel', 'nacl_xdr', 'nonnacl_srpc', 'nrd_xfer', 'nonnacl_util_c',
+               'ncvalidate', 'google_nacl_imc_c', 'container', 'platform_qual_lib',
+               'platform', 'gio', 'expiration', 'rt', 'pthread', 'ssl', 'crypto',
+               'SDL', 'SDLmain', 'pthread']
+
+# Dynlink path
+DYNLINK_PATH = '/home/<username>/robustatrunk/librobusta/dynlink2'
+
+#native_client directory
+NATIVE_CLIENT = '/home/<username>/robustatrunk/native_client'
+
+#openjdk directory
+OPENJDK = '/home/<username>/robustatrunk/openjdk/'
+
+# Flags for compiling sel_ldr
+# N.B., removed '-DHAVE_SDL' (the SDL library seems not useful for us)
+SEL_LDR_FLAGS='-std=gnu99 -m32 -Werror -Wall -fvisibility=hidden -O2 -DNACL_WINDOWS=0 -DNACL_OSX=0 -DNACL_LINUX=1 -D_BSD_SOURCE=1 -D_POSIX_C_SOURCE=199506 -D_XOPEN_SOURCE=600 -D_GNU_SOURCE=1 -D__STDC_LIMIT_MACROS=1 -DNACL_BLOCK_SHIFT=5 -DNACL_BLOCK_SIZE=32 -DNACL_BUILD_ARCH=x86 -DNACL_BUILD_SUBARC=32 -DNACL_TARGET_ARCH=x86 -DNACL_TARGET_SUBARCH=32 -DOS_LINUX=OS_LINUX -DNDEBUG'
+
+
+# nacl development environment
+os.environ['NACL_LINKER']=NACL_LINKER
+env=Environment(CPPPATH=NACL_DEV_INCPATH,
+                LIBPATH=NAC_DEV_LIBPATH,
+                ENV = os.environ)
+
+SEL_MAIN_OBJ = env.Object('sel_main_dl.o', 'sel_main_dl.c',
+                          CCFLAGS=SEL_LDR_FLAGS);
+
+SEL_LDR_OBJ = env.Object('sel_ldr_dl.o', 'sel_ldr_dl.c',
+                         CCFLAGS=SEL_LDR_FLAGS);
+
+sel_ldr = env.Program('sel_ldr', [SEL_MAIN_OBJ, SEL_LDR_OBJ],
+                      CC='g++',  LIBS=NACL_DEV_LIBS,
+                      LINKFLAGS=['-m32 '
+                                 '-Wl,-rpath='+NACL_LIB_PATH])
+
+Default(sel_ldr)
+
+###############################
+# the test-lib target
+
+# Mark Seaborn's version of nacl can build PICs
+NACL_SDK_PATH="/home/<username>/robustatrunk/MSNaCl/nacl-build/googleclient/native_client"
+NACL_SDK_BIN_PATH = NACL_SDK_PATH + "/tools_bin/linux/sdk/nacl-sdk/bin"
+GLIBC_SOURCE = NACL_SDK_PATH + "/glibc"
+GLIBC = NACL_SDK_PATH + "/install"
+
+DYN_NACL_CCFLAGS = ["-isystem", GLIBC + "/include",
+                    "-isystem", GLIBC_SOURCE +"/kernel-headers", 
+		    "-I" + NATIVE_CLIENT + "/src/trusted/service_runtime",
+		    "-D_LARGEFILE64_SOURCE"] 
+
+DYN_NACL_LINKFLAGS = ["-B" + GLIBC+"/lib",
+                      "-Wl,-rpath,"+NACL_SDK_PATH+"/install-stubout/lib",
+		      "-Wl,-rpath,"+DYNLINK_PATH+"/tests"]
+
+UNTRUSTED_NACL_CCFLAGS = ["-I" + NATIVE_CLIENT + "/src/untrusted/"]
+
+UNTRUSTED_NACL_LINKFLAGS = ["-L" + NATIVE_CLIENT + "/scons-out/nacl_extra_sdk-x86-32/lib/"]
+
+OPENJDK_CCFLAGS = ["-I" + OPENJDK + "build/linux-i586/hotspot/import/include/",
+			"-I" + OPENJDK + "build/linux-i586/hotspot/import/include/linux/",
+			"-I" + OPENJDK + "build/linux-i586/hotspot/outputdir/linux_i486_compiler1/generated/incls/"]
+
+ROBUSTA_CCFLAGS = ["-I" + NACL_PATH + "/include/"]
+
+# nacl SDK environment
+naclSDKEnv=Environment(CC=NACL_SDK_BIN_PATH + "/nacl-gcc",
+                       CPPPATH=['/usr/include'],
+                       LIBPATH=[GLIBC+"/lib", GLIBC_SOURCE+"/ld", 
+		       DYNLINK_PATH+"/tests"])
+
+#flags for compiling dynlink
+BLOCKS_CC_FLAGS='-DNACL_BLOCK_SHIFT=5'
+
+dynlink = naclSDKEnv.Program("tests/dynlink",
+                             ["tests/dynlink.c", "tests/sblocks.c", "tests/jni_sblocks.c"],
+                             CCFLAGS=[DYN_NACL_CCFLAGS, BLOCKS_CC_FLAGS, UNTRUSTED_NACL_CCFLAGS, OPENJDK_CCFLAGS, ROBUSTA_CCFLAGS],
+                             LINKFLAGS=[DYN_NACL_LINKFLAGS, UNTRUSTED_NACL_LINKFLAGS],
+                             LIBS=['dl', 'pthread', 'nacl'])
+
+
+os.environ['NACL_LOAD_DL_SERVICE']='1';
+envDl = Environment(ENV= os.environ);
+PhonyTarget(envDl, "dynlink", dynlink, "");
+PhonyTarget(envDl, "test-dynlink", [sel_ldr, dynlink],
+            "./sel_ldr -d " + NACL_LINKER);
+

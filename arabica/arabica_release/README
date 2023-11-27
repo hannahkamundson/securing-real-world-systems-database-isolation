@@ -1,0 +1,253 @@
+Copyright (c) 2010-2012. Gang Tan, Mengtao Sun, Joseph Siefers.  
+The SOS lab. Lehigh University.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer. 
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+------------------------------------------------------------------------------
+
+Arabica Installation Guide
+
+Introduction:
+=============
+This document describes how to build the source code of Arabica and run its
+test programs on your system. To better understand the framework, it is
+suggested that you read our conference papers first:
+
+- Robusta: Taming the Native Beast of the JVM
+  (http://www.cse.lehigh.edu/~gtan/paper/robusta.pdf)
+- JVM-Portable Sandboxing of Java's Native Libraries
+  (http://www.cse.lehigh.edu/~gtan/paper/arabica.pdf)
+
+
+Overview:
+=========
+
+This released tarball contains the source of Arabica. The file and directory
+structure is as follows:
+
+- native_client: Google's Native Client, which provides Arabica the SFI
+  sandbox implementation.
+- MSNaCl: Mark Seaborn's Native Client, which supports the functionality of
+  dynamic loading/linking
+- librobusta: the runtime library of Arabica (and previous Robusta)
+- thirdparty: a third-party implementation of linked list used in Arabica
+- include: shared header files
+- test: some simple test programs and stub library generators
+- README: this file
+
+There are some other files in the root directory (e.g. Makefile.am,
+configure.ac, etc.) that will be used by Libtool to generate Makefiles.
+
+
+Building Steps:
+===============
+
+Note: Arabica has only been tested on Ubuntu 8.10! Minor changes on the source
+code might be needed to work on newer versions.
+
+1. Extract the tarball to where you want it to end up.
+
+2. Install required libraries:
+   - sudo apt-get install python-lxml
+   - sudo apt-get install python-libxml2
+   - sudo apt-get install python-libxslt1
+   - sudo apt-get install gawk
+   - sudo apt-get install texinfo
+   - sudo apt-get install libncurses5-dev
+   - sudo apt-get install libgtk2.0-dev
+   - sudo apt-get install fakeroot
+   - sudo apt-get install libssl-dev
+   - sudo apt-get install scons
+   - sudo apt-get install libtool
+
+3. Build MSNaCl (Mark Seaborn NaCl, a modified NaCl for dynamic loading)
+   a) Change directory to MSNaCl/nacl_build.
+
+   b) Run the following command: 
+	- python naclbuild.py x"
+      where x = 2 and 3, from the top level MSNaCl/nacl-build directory.
+
+   c) Change MSNaCl/nacl_build/googleclient/native_client/tools/Makefile to
+      comment out anything related to gdb (including the case...esac
+      statement).
+
+   d) Continue with "python naclbuild.py x":
+      -x ranges from 4-6, 11-16, 25-30
+      	 - 2-6 is to download some compulsary files
+	 - 11-16 is the process of configuration and compilation
+	 - 25-30 is testing
+
+      - Possible errors and solutions:
+      1) x = 12:
+         ________Linking scons-out/dbg-linux/obj/npapi_plugin/
+         libnpGoogleNaClPlugin.so
+         /usr/bin/ld: cannot find -lXt
+
+         - Try to install the Xt libraries:
+           - sudo apt-get install libxt-dev
+           - sudo apt-get install libxtst-dev
+      2) x = 13:
+         Error: nacl-gcc not found on PATH
+
+         - Add the path to NaCl toolchain to your PATH:
+           PATH=$PATH:path/to/trunk/MSNaCl/nacl-build/googleclient/
+                      native_client/tools_bin/linux/sdk/nacl-sdk/bin
+
+3. Build Native Client
+   a) Change directory to native_client.
+
+   b) In SConstruct:
+      Search for 'unix_like_env.Prepend' and update the path to the JVM with
+      the one on your machine. Currently it is set to '/usr/local/jdk1.6.0_17'
+
+   c) Build NaCl's secure loader:
+      Run the following command:
+      	  - ./scons sel_ldr
+      from top level native_client directory
+
+      - NOTE: there are some reverse references to functions in Robusta, so
+      it's expected to see the following linking errors for sel_ldr:
+        ________Linking scons-out/opt-linux-x86-32/obj/src/trusted/service_runtime/sel_ldr
+        scons-out/opt-linux-x86-32/lib/libsel.a(nacl_syscall_common.o): In function `NaClCommonSysOpen':
+        nacl_syscall_common.c:(.text+0x3fda): undefined reference to `robusta_verifyOperation'
+        nacl_syscall_common.c:(.text+0x4032): undefined reference to `robusta_verifyOperation'
+        ...
+        
+      ==>! We don't actually use the sel_ldr executible, so we can safely
+      ignore these. The necessary libraries from Robusta's perspective have
+      already been built.
+
+   d) Build NaCl's extra sdk libraries
+      Run the following command:
+      	  - ./scons --mode=nacl_extra_sdk
+      from top level native_client directory
+
+4. Build Arabica's runtime library
+   a) Change directory to librobusta
+
+   b) Specify the paths to NaCl's dynamic loader and the utility module on
+      your machine in robusta_jvm.c
+      (search for fake paths with "<username>")
+
+   c) Similar to Step 3.b, update the path to the JVM with the one on your
+      machine in librobusta_la_CPPFLAGS. Currently it is set to
+      '/usr/local/jdk1.6.0_17'
+   
+   d) Change directory to Arabica's root directory
+
+   e) Run the following commands to generate Makefiles:
+      - aclocal (generates aclocal.m4)
+      - autoconf (generates configure)
+      - automake --add-missing (generates Makefile.in)
+      - ./configure (generates Makefile)
+
+   f) In librobusta/Makefile (the Makefile generated in the previous step),
+      replace '-O2' with '-O0' in CFLAGS and CXXFLAGS
+
+   g) Run make.
+
+5. Build dynlink2 (the utility module for dynamic loading/linking)
+   - Change directory to librobusta/dynlink2/
+   - Specify the path to NaCl's dynamic loader in sel_main_dl.c
+     (search for fake paths with "<username>")
+   - Specify the paths in SConstruct (search for fake paths with "<username>")
+   - Run the following command:
+     	 - scons dynlink
+
+
+Steps to run test programs:
+==================================
+We have included a set of microbenchmarks to help ensure that Arabica works
+properly on your system. The file and directory structure under the test
+directory is as follows:
+
+- build.properties: the configuration file to set the path to the JVM
+- build.xml: the build file for ant to compile and run the benchmarks
+- SConstruct: the build file for scons to build the native libraries
+- src: the source files of the benchmarks
+- stub_gen: the stub generator based on Java source files. A sample file is
+  also available inside the folder
+- stub_gen_2: the stub generator based on Java class files
+(For more details of the stub generator, please refer to our Arabica paper.)
+
+You can follow the steps below to build and run the microbenchmarks:
+
+1. Install ant if you have not:
+   - sudo apt-get install ant
+
+2. Edit “build.properties” to set the correct path to the JVM
+
+3. Generate source files for stub libraries. It is enough to use the
+   source-based stub generator here.
+   a) Build the stub generator:
+      - javac StubGenerator.java
+
+   b) Edit the configuration file, e.g. config, to set the parameters, such
+   as the paths to the source native file and the sandboxed native library,
+   etc.
+
+   c) Generate the stub source file by running the generator with config as
+   the argument:
+      - java StubGenerator config
+
+4. Build the microbenchmarks
+   a) Put the stub files generated in step 3 to the corresponding folder if
+   you set the output directory to somewhere else. For example,
+   StubHelloWorld.c must stay together with HelloWorld.c.
+
+   b) Compile the Java code of the benchmarks:
+      - ant compile
+
+   c) Edit SConstruct to specify the paths to the correct ones on your
+   machine. All fake paths starting with "/home/<username>" should be updated.
+
+   d) Edit SConstruct to include the native libraries you want to build. The
+   default SConstruct includes all native libraries. But if you have not
+   generated stub code for them, you must delete them from the script. You
+   can just add or delete the building targets inside the quotes of
+   PhonyTarget at the end of the script.
+
+   e) Build the normal (unsandboxed), sandboxed and stub native libraries:
+      - ant libs
+
+   f) Edit build.xml to specify the paths to Arabica's agent library. All
+   fake paths starting with "/home/username" should be updated.
+
+   g) Edit build.xml to specify the benchmarks you want to run
+      - Specify vanilla benchmarks (e.g. running benchmarks without
+      	sandboxing their native libraries) in the entry "junit-micro"
+      - Specify sandboxed benchmarks (e.g. running benchmarks with their
+        native libraries sandboxed) in the entry "junit-agent"
+      - Note that if you want to run the "File" benchmark (a benchmark that
+      	reads/writes files on your disk using native code), you also need to
+        specify the paths to the target files in src/file/FileAccessTest.java.
+
+   h) Run the target benchmarks:
+      - Native libraries not sandboxed: ant junit-micro-vanilla
+      - Native libraries sandboxed: ant junit-agent-stub
+
+------------------------------------------------------------------------------
+Acknowledgments
+
+We thank Ming Zhou from University of Minnesota and Behnaz Hassanshahi from
+National University of Singapore for their suggestions about improving this
+readme file.

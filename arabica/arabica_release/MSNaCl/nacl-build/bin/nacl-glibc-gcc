@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -e
+
+top=$(cd $(dirname $0)/.. && pwd)/googleclient/native_client
+glibc_source=$top/glibc
+glibc=$top/install
+
+$top/tools_bin/linux/sdk/nacl-sdk/bin/nacl-gcc \
+    -isystem $glibc/include -isystem $glibc_source/kernel-headers \
+    -B$glibc/lib -L$glibc/lib -Wl,-rpath-link,$glibc/lib \
+    -L$glibc_source/ld \
+    "$@" \
+    -I/usr/include
+
+python -c '
+import os
+import sys
+import subprocess
+
+input_files = []
+output_files = []
+
+args = sys.argv[1:]
+i = 0
+while i < len(args):
+    arg = args[i]
+    if arg == "-o":
+        output_files.append(args[i + 1])
+        i += 2
+    else:
+        if not arg.startswith("-"):
+            input_files.append(arg)
+        i += 1
+
+if len(output_files) == 0:
+    # Work out what the default output file is.
+    # Maybe we could do this via gcc spec files instead.
+    if "-c" in args:
+        assert len(input_files) == 1, input_files
+        assert input_files[0][-2] == "."
+        output_files.append(input_files[0][:-2] + ".o")
+    else:
+        output_files.append("a.out")
+
+for output_file in output_files:
+    subprocess.check_call(["ncrewrite", "--nop", output_file])
+' "$@"

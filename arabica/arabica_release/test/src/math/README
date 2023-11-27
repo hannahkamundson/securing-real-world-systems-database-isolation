@@ -1,0 +1,15 @@
+This StrictMath example is extracted from JDK 1.5.0 source code. 
+  - StrictMath.java is from j2se/src/share/classes/java/lang/
+  - StrictMath.c is from j2se/src/share/native/java/lang/
+
+
+TESTING STEPS
+
+1. cd native; make 
+2. javac -classpath . StrictMathTest.java
+3. java -Djava.library.path=. StrictMathTest
+
+
+INVOKING CIL
+
+cd native; make CIL=yes

@@ -1,0 +1,295 @@
+
+CLINKLIST(3)                 Additional C Library                 CLINKLIST(3)
+
+
+
+NNAAMMEE
+       LLiissttCCrreeaattee,,  LLiissttAAdddd,,  LLiissttIInnsseerrtt,, LLiissttAAppppeenndd,, LLiissttPPrreeppeenndd,, LLiissttCCoonnccaatt,,
+       LLiissttCCoouunntt,, LLiissttFFiirrsstt,, LLiissttLLaasstt,,  LLiissttNNeexxtt,,  LLiissttPPrreevv,,  LLiissttCCuurrrr,,  LLiisstt--
+       SSeeaarrcchh,, LLiissttRReemmoovvee,, LLiissttFFrreeee,, LLiissttTTrriimm -- List Functions
+
+
+SSYYNNOOPPSSIISS
+       ##iinncclluuddee lliisstt..hh
+
+       _L_I_S_T _*_L_i_s_t_C_r_e_a_t_e_(_v_o_i_d_)_;
+
+       _i_n_t _L_i_s_t_A_d_d_(_L_I_S_T _*_w_L_i_s_t_, _v_o_i_d _*_i_t_e_m_)_;
+
+       _i_n_t _L_i_s_t_I_n_s_e_r_t_(_L_I_S_T _*_w_L_i_s_t_, _v_o_i_d _*_i_t_e_m_)_;
+
+       _i_n_t _L_i_s_t_A_p_p_e_n_d_(_L_I_S_T _*_w_L_i_s_t_, _v_o_i_d _*_i_t_e_m_)_;
+
+       _i_n_t _L_i_s_t_P_r_e_p_e_n_d_(_L_I_S_T _*_w_L_i_s_t_, _v_o_i_d _*_i_t_e_m_)_;
+
+       _v_o_i_d _L_i_s_t_C_o_n_c_a_t_(_L_I_S_T _*_l_i_s_t_1_, _L_I_S_T _*_l_i_s_t_2_)_;
+
+       _i_n_t _L_i_s_t_C_o_u_n_t_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _*_L_i_s_t_F_i_r_s_t_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _*_L_i_s_t_L_a_s_t_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _*_L_i_s_t_N_e_x_t_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _*_L_i_s_t_P_r_e_v_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _*_L_i_s_t_C_u_r_r_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d  _*_L_i_s_t_S_e_a_r_c_h_(_L_I_S_T  _*_w_L_i_s_t_,  _i_n_t  _(_*_c_o_m_p_a_r_a_t_o_r_)_(_v_o_i_d  _*_i_t_e_m_1_,  _v_o_i_d
+       _*_i_t_e_m_2_)_, void *compareTo); _v_o_i_d _*_L_i_s_t_R_e_m_o_v_e_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+       _v_o_i_d _L_i_s_t_F_r_e_e_(_L_I_S_T _*_w_L_i_s_t_, _v_o_i_d _(_*_i_t_e_m_F_r_e_e_)_(_v_o_i_d _*_i_t_e_m_)_)_;
+
+       _v_o_i_d _*_L_i_s_t_T_r_i_m_(_L_I_S_T _*_w_L_i_s_t_)_;
+
+
+
+LLIIBBRRAARRYY
+       The library is default compiled to libclist.a
+
+
+DDEESSCCRRIIPPTTIIOONN
+       libclist.a is an implementation of a bilinked list in C.  The list  can
+       store  a  pointer to any kind of data passed to it.  It is the program-
+       mers responablity to ensure that data is homogeneous, or that non homo-
+       geneneous  elements  are kept track of.  All items must be allocated by
+       the programmer, and passed in as pointers to items.  All itmes must  be
+       freed by the programmer, all removal functions will return a pointer to
+       the item (except listFree) The programmer must provide  implementations
+       of  comparator,  and itemFree to beable to use listSearch, and listFree
+       respectively
+
+       FFUUNNCCTTIIOONN DDEESSCCRRIIPPTTIIOONNSS
+
+
+              LIST *ListCreate(void);
+                     DESCRIPTION:
+                            creates a new list
+                     ARGUMENTS:
+                            none
+                     RETURNS:
+                            a list structure, the base of the new list
+                     NOTES:
+                            none
+
+              int ListAdd(LIST *wList, void *item);
+                     DESCRIPTION:
+                            inserts an item directly after the current item
+                     ARGUMENTS:
+                            the list to manipulate; an item, the item to  add.
+                     RETURNS:
+                            an  int,  the success of the function: 0 for fail-
+                            ure, anything else for success
+                     NOTES:
+                            none
+
+              int ListInsert(LIST *wList, void *item);
+                     DESCRIPTION:
+                            inserts an item directly before the current item
+                     ARGUMENTS:
+                            the list to manipulate; an item, the item to  add.
+                     RETURNS:
+                            an  int,  the success of the function: 0 for fail-
+                            ure, anything else for success
+                     NOTES:
+                            none
+
+
+              int ListAppend(LIST *wList, void *item);
+                     DESCRIPTION:
+                            inserts an item at the end of the list
+                     ARGUMENTS:
+                            the list to manipulate; an item, the item to  add.
+                     RETURNS:
+                            an  int,  the success of the function: 0 for fail-
+                            ure, anything else for success
+                     NOTES:
+                            none
+
+
+              int ListPrepend(LIST *wList, void *item);
+                     DESCRIPTION:
+                            inserts an  item  at  the  begining  of  the  list
+                            (before the first item)
+                     ARGUMENTS:
+                            the  list to manipulate; an item, the item to add.
+                     RETURNS:
+                            an int, the success of the function: 0  for  fail-
+                            ure, anything else for success
+                     NOTES:
+                            none
+
+
+              void ListConcat(LIST *list1, LIST *list2);
+                     DESCRIPTION:
+                            concatinates  two lists together.  The second list
+                            will no longer exist, and the current item will be
+                            the current item of the first list.
+                     ARGUMENTS:
+                            a  list,  the  base  list;  a list, the list to be
+                            added to the base list
+                     RETURNS:
+                            none
+
+
+              int ListCount(LIST *wList);
+                     DESCRIPTION:
+                            return the number of items in the list
+                     ARGUMENTS:
+                            the list to be counted
+                     RETURNS:
+                            an int, the count of the list: -1 if the  list  is
+                            NULL
+                     NOTES:
+                            none
+
+
+              void *ListFirst(LIST *wList);
+                     DESCRIPTION:
+                            return  the  first  item in the list, and make the
+                            first node the current one
+                     ARGUMENTS:
+                            the list to manipulate
+                     RETURNS:
+                            an void pointer, to the first item:  NULL  if  the
+                            first item does not exist
+                     NOTES:
+                            none
+
+
+              void *ListLast(LIST *wList);
+                     DESCRIPTION:
+                            return  the last item in the List, and make it the
+                            current item.
+                     ARGUMENTS:
+                            the List to manipulate
+                     RETURNS:
+                            an void pointer, to the last  item:  NULL  if  the
+                            last item does not exist.
+                     NOTES:
+                            none
+
+
+              void *ListNext(LIST *wList);
+                     DESCRIPTION:
+                            make  the  next  item the current item, and return
+                            it.
+                     ARGUMENTS:
+                            the list to manipulate
+                     RETURNS:
+                            an void pointer, to the next  item.  NULL  if  the
+                            next item is off the list
+                     NOTES:
+                            none
+
+
+              void *ListPrev(LIST *wList);
+                     DESCRIPTION:
+                            make  the  previous  item  the  current  item, and
+                            return it
+                     ARGUMENTS:
+                            the list to manipulate
+                     RETURNS:
+                            a void pointer to the previous item in  the  list.
+                            NULL if the previous item is off the list
+                     NOTES:
+                            none
+
+
+              void *ListCurr(LIST *wList);
+                     DESCRIPTION:
+                            return the current item in the list
+                     ARGUMENTS:
+                            the list to manipulate
+                     RETURNS:
+                            a  void  pointer  to the current item in the list:
+                            NULL if the current item does not exist.
+                     NOTES:
+                            none
+
+
+              void *ListSearch(LIST  *wList,  int  (*comparator)(void  *item1,
+              void *item2), void *compareTo);
+                     DESCRIPTION:
+                            locates an item in the list.  The item  is  deter-
+                            mined  by  a  compaarator  function  passed to the
+                            function, and a comparison Arg passed to the func-
+                            tion.
+                     ARGUMENTS:
+                            a   list,  the  list  to  manipulate;  a  function
+                            pointer, the comparison opperation;  a  comparison
+                            Arg.
+                     RETURNS:
+                            a  void pointer, to the item searched for. NULL if
+                            the item is not found.
+                     NOTES:
+                            none
+
+
+              void *ListRemove(LIST *wList);
+                     DESCRIPTION:
+                            Returns a pointer to the current item in the List,
+                            and  removes it from the list. Makes the next item
+                            the current one.
+                     ARGUMENTS:
+                            the list to manipulate.
+                     RETURNS:
+                            a void pointer to the item removed:  NULL  if  the
+                            item could not be removed
+                     NOTES:
+                            a  list  with  NULL  items may cause listRemove to
+                            appear to fail, when it actually returns the item.
+
+
+              void ListFree(LIST *wList, void (*itemFree)(void *item));
+                     DESCRIPTION:
+                            Deallocates a list
+                     ARGUMENTS:
+                            the  list  to  manipulate; a function pointer to a
+                            function that can free the items being  stored  in
+                            the list.
+                     RETURNS:
+                            none
+                     NOTES:
+                            none
+
+
+              void *ListTrim(LIST *wList);
+                     DESCRIPTION:
+                            Returns  a  pointer  to the last item in the list,
+                            and removes it from the list.
+                     ARGUMENTS:
+                            the list to manipulate.
+                     RETURNS:
+                            a void pointer to the item  trimed:  NULL  if  the
+                            item could not be removed.
+                     NOTES:
+                            Same as list Remove
+
+
+
+SSOOUURRCCEE
+       The source is divided into three files
+              lliisstt__aaddddeerrss..cc lliisstt__mmoovveerrss..cc lliisstt__rreemmoovveerrss..cc
+       and a header
+              lliisstt..hh
+       The  library will build with the provided makefile into lliibbcclliisstt..aa with
+       the command mmaakkee lliibbrraarryy
+
+
+SSTTAATTUUSS
+       All functions are implemented, and have been tested.  Stess testing has
+       been preformed, and the library appears to correctly handle bad data.
+
+
+BBUUGGSS
+            The library has no known bugs at this time.
+
+
+AAUUTTHHOORR
+            Jon Lovering <jonlovering@ieee.org>
+
+
+
+1.6                            December 30 2005                   CLINKLIST(3)
