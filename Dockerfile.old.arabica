@@ -19,15 +19,15 @@ RUN mkdir googleclient && \
     mv /tmp/native_client/src/third_party/ googleclient/ && \
     rm -rf /tmp/native_client
 
-RUN python2 naclbuild.py 3 && \
+RUN python2 naclbuild.py 3 && /\
     rm /usr/build/arabica_release/MSNaCl/nacl-build/googleclient/native_client/tools/Makefile && \
     python2 naclbuild.py 4 && \
     python2 naclbuild.py 5 && \
     python2 naclbuild.py 6
 
 # Replace the makefile with a file that doesn't have any reference to GDB
-COPY arabica_helper/Makefile.base /usr/build/arabica_release/MSNaCl/nacl-build/googleclient/native_client/tools/Makefile
-COPY arabica_helper/Makefile.binutils /tmp/
+COPY arabica_helper/old/Makefile.base /usr/build/arabica_release/MSNaCl/nacl-build/googleclient/native_client/tools/Makefile
+COPY arabica_helper/old/Makefile.binutils /tmp/
 
 # These replace python2 naclbuild.py 11 because it isn't working in the docker shell
 WORKDIR /usr/build/arabica_release/MSNaCl/nacl-build/googleclient/native_client/tools

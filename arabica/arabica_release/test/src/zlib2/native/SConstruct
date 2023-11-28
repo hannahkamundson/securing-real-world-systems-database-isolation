@@ -1,5 +1,0 @@
-normal = Environment(CCFLAGS = ['-O3', '-DHAVE_UNISTD_H', '-I/usr/java/jdk/include', '-I/usr/java/jdk/include/linux'])
-
-libtestzip = normal.SharedLibrary('libtestzip.so', ['zlib-1.2.3/compress.c', 'zlib-1.2.3/gzio.c', 'zlib-1.2.3/inffast.c', 'zlib-1.2.3/inftrees.c', 'zlib-1.2.3/uncompr.c', 'zlib-1.2.3/zcrc32.c', 'zlib-1.2.3/deflate.c', 'zlib-1.2.3/infback.c',  'zlib-1.2.3/inflate.c', 'zlib-1.2.3/trees.c', 'zlib-1.2.3/zadler32.c', 'zlib-1.2.3/zutil.c', 'CRC32.c',  'Deflater.c'])
-
-Default(libtestzip)
