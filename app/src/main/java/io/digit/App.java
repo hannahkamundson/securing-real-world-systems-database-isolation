@@ -26,9 +26,9 @@ public class App {
                 .required(true)
                 .help("Do you want to sandbox?");
         parser.addArgument("--iterations", "-i")
-                        .type(Integer.class)
-                        .setDefault(1)
-                        .help("How many times should we run the benchmark on this command?");
+                .type(Integer.class)
+                .setDefault(1)
+                .help("How many times should we run the benchmark on this command?");
 
         log.info("Starting application");
 
@@ -55,6 +55,4 @@ public class App {
 
         log.info("Application ending");
     }
-
-
 }
