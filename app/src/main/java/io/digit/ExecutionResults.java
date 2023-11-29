@@ -1,8 +1,6 @@
 package io.digit;
 
 import com.sun.management.OperatingSystemMXBean;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 import javax.management.MBeanServerConnection;
 import java.io.IOException;
@@ -10,18 +8,23 @@ import java.lang.management.ManagementFactory;
 
 public class ExecutionResults {
     private final long totalTime;
+    private final long thisCPUTime;
+
+    private final long otherCPUtime;
     private final long totalCPUTime;
     private final double percentCPUTime;
 
-    private ExecutionResults(long totalTime, long totalCPUTime) {
+    private ExecutionResults(long totalTime, long thisCPUTime, long otherCPUtime) {
         this.totalTime = totalTime;
-        this.totalCPUTime = totalCPUTime;
+        this.thisCPUTime = thisCPUTime;
+        this.otherCPUtime = otherCPUtime;
+        this.totalCPUTime = thisCPUTime + otherCPUtime;
         this.percentCPUTime = 100 * ((double) totalCPUTime / (double) totalTime);
     }
 
     @Override
     public String toString() {
-        return String.format("total time = %s | total CPU time = %s | CPU overhead = %s)", totalTime, totalCPUTime, percentCPUTime);
+        return String.format("total time = %s | this CPU time = %s | other CPU time = %s | total CPU time = %s | CPU overhead = %s)", totalTime, thisCPUTime, otherCPUtime, totalCPUTime, percentCPUTime);
     }
 
     public static Builder builder() throws IOException {
@@ -37,6 +40,10 @@ public class ExecutionResults {
         private long endTime;
         private long cpuStartTime;
         private long cpuEndTime;
+        // We need to account for the cpu time from the process
+        private long otherCpuStartTime;
+        // We need to account for the cpu time from the process
+        private long otherCpuEndTime;
 
         Builder() throws IOException {
         }
@@ -61,8 +68,18 @@ public class ExecutionResults {
             return this;
         }
 
+        public Builder otherCpuStartTime(long cpuTime) {
+            this.otherCpuStartTime = cpuTime;
+            return this;
+        }
+
+        public Builder otherCpuEndTime(long cpuTime) {
+            this.otherCpuEndTime = cpuTime;
+            return this;
+        }
+
         public ExecutionResults build() {
-            return new ExecutionResults(endTime - startTime, cpuEndTime - cpuStartTime);
+            return new ExecutionResults(endTime - startTime, cpuEndTime - cpuStartTime, otherCpuEndTime - otherCpuStartTime);
         }
     }
 }

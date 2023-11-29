@@ -3,6 +3,7 @@ package io.digit;
 import io.digit.commands.Command;
 import io.digit.commands.CommandFactory;
 import io.digit.commands.CommandType;
+import io.digit.sandbox.SandboxCommand;
 import io.digit.sandbox.SandboxFactory;
 import io.digit.sandbox.SandboxType;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +61,8 @@ public class App {
         List<CommandType> commandTypes = ns.get("command");
         int iterations = ns.getInt("iterations");
 
-        DatabaseRPC db = SandboxFactory.create(sandboxType).createDatabaseConnection();
+        SandboxCommand sandboxCommand = SandboxFactory.create(sandboxType);
+        DatabaseRPC db = sandboxCommand.createDatabaseConnection();
 
         Map<CommandType, ExecutionResults> resultsMap = new HashMap<>();
 
@@ -71,20 +74,22 @@ public class App {
             Command<?> command = CommandFactory.create(commandType);
             builder.startTime();
             builder.cpuStartTime();
+            builder.otherCpuStartTime(sandboxCommand.getCpuStartTime(db));
 
             // Run the command that is being asked
             for (int i = 1; i <= iterations; i++) {
                 Object value = db.run(command, i);
-                log.info("{}: Outputting results {}", App.PID, command.interpretResults(value));
+                log.debug("{}: Outputting results {}", App.PID, command.interpretResults(value));
             }
 
             builder.cpuEndTime();
+            builder.otherCpuEndTime(sandboxCommand.getCpuEndTime(db));
             builder.endTime();
 
             resultsMap.put(commandType, builder.build());
         }
 
-        log.info("{}: Application ending", App.PID);
+        log.debug("{}: Application ending", App.PID);
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append('\n');
@@ -95,7 +100,7 @@ public class App {
         stringBuilder.append(iterations);
         stringBuilder.append('\n');
         stringBuilder.append('\n');
-        for (Map.Entry<CommandType, ExecutionResults> entry: resultsMap.entrySet()) {
+        for (Map.Entry<CommandType, ExecutionResults> entry: resultsMap.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().toString())).toList()) {
             stringBuilder.append(entry.getKey());
             stringBuilder.append('\n');
             stringBuilder.append(entry.getValue());

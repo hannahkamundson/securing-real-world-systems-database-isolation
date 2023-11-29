@@ -27,15 +27,25 @@ public class ProcessIsolationSandbox implements SandboxCommand {
         return db;
     }
 
+    @Override
+    public long getCpuStartTime(DatabaseRPC db) {
+        return db.getProcessCpuTime();
+    }
+
+    @Override
+    public long getCpuEndTime(DatabaseRPC db) {
+        return db.getProcessCpuTime();
+    }
+
     private static void waitUntilProcessServerReady(DatabaseRPC db) throws InterruptedException {
         boolean isReady = false;
 
         while (!isReady) {
             try {
                 isReady = db.ready();
-                log.info("{}: The database process is ready", App.PID);
+                log.debug("{}: The database process is ready", App.PID);
             } catch (Exception e) {
-                log.info("{}: Waiting for the database process to be ready", App.PID);
+                log.debug("{}: Waiting for the database process to be ready", App.PID);
 
                 // Ignore and give it 1 second to spin up before trying again
                 Thread.sleep(1000);
@@ -72,7 +82,7 @@ public class ProcessIsolationSandbox implements SandboxCommand {
                 .redirectInput(ProcessBuilder.Redirect.INHERIT)
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-        log.info("{}: Starting process", App.PID);
+        log.debug("{}: Starting process", App.PID);
 
         Process databaseProcess = builder.start();
 

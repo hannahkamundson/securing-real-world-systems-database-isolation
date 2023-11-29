@@ -6,10 +6,12 @@ public interface DatabaseRPC {
     /**
      * Run the given command.
      */
-    Object run(Command command, int iteration);
+    Object run(Command<?> command, int iteration);
 
     /**
      * Is the system ready?
      */
     boolean ready();
+
+    long getProcessCpuTime();
 }

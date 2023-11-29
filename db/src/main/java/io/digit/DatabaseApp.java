@@ -15,7 +15,7 @@ public class DatabaseApp {
     public static final long PID = ProcessHandle.current().pid();
 
     public static void main(String[] args) throws XmlRpcException, IOException {
-        log.info("{}: Starting process", DatabaseApp.PID);
+        log.debug("{}: Starting process", DatabaseApp.PID);
         // Create the handler mapping to our class that handles it
         PropertyHandlerMapping propertyHandlerMapping = new PropertyHandlerMapping();
         // Create a new process factory, so we can maintain state across rpc calls
@@ -33,7 +33,7 @@ public class DatabaseApp {
         serverConfig.setEnabledForExtensions(true);
         serverConfig.setContentLengthOptional(false);
 
-        log.info("{}: Server starting", DatabaseApp.PID);
+        log.debug("{}: Server starting", DatabaseApp.PID);
 
         webServer.start();
     }
