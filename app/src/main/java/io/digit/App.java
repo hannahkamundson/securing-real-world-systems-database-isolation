@@ -3,7 +3,6 @@ package io.digit;
 import io.digit.commands.Command;
 import io.digit.commands.CommandFactory;
 import io.digit.commands.CommandType;
-import io.digit.sandbox.SandboxCommand;
 import io.digit.sandbox.SandboxFactory;
 import io.digit.sandbox.SandboxType;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,15 @@ public class App {
         parser.addArgument("--command", "-c")
                 .type(CommandType.class)
                 .nargs("+")
-                .required(true)
+                .setDefault(List.of(
+                        // This order shouldn't cause any problems
+                        CommandType.CONNECTION,
+                        CommandType.CREATE_TABLE,
+                        CommandType.INSERT,
+                        CommandType.SELECT,
+                        CommandType.DELETE,
+                        CommandType.DELETE_TABLE
+                ))
                 .help("The command you want to run");
         parser.addArgument("--sandbox", "-s")
                 .type(SandboxType.class)
@@ -35,7 +42,7 @@ public class App {
                 .help("Do you want to sandbox?");
         parser.addArgument("--iterations", "-i")
                 .type(Integer.class)
-                .setDefault(1)
+                .setDefault(20)
                 .help("How many times should we run the benchmark on this command?");
 
         log.info("{}: Main application PID: {}", App.PID, App.PID);
@@ -59,19 +66,20 @@ public class App {
         for (CommandType commandType: commandTypes) {
             log.info("{}: Running sandbox: {}, command: {}, iterations: {}", App.PID, sandboxType, commandType, iterations);
 
-            ExecutionResults.ExecutionResultsBuilder builder = ExecutionResults.builder();
+            ExecutionResults.Builder builder = ExecutionResults.builder();
 
             Command<?> command = CommandFactory.create(commandType);
-            builder.iterations(iterations);
-            builder.startTime(System.nanoTime());
+            builder.startTime();
+            builder.cpuStartTime();
 
             // Run the command that is being asked
-            for (int i = 0; i < iterations; i++) {
+            for (int i = 1; i <= iterations; i++) {
                 Object value = db.run(command, i);
                 log.info("{}: Outputting results {}", App.PID, command.interpretResults(value));
             }
 
-            builder.endTime(System.nanoTime());
+            builder.cpuEndTime();
+            builder.endTime();
 
             resultsMap.put(commandType, builder.build());
         }
@@ -83,13 +91,14 @@ public class App {
         stringBuilder.append('\n');
         stringBuilder.append("SANDBOX TYPE: ");
         stringBuilder.append(sandboxType);
+        stringBuilder.append("  ITERATIONS: ");
+        stringBuilder.append(iterations);
         stringBuilder.append('\n');
         stringBuilder.append('\n');
         for (Map.Entry<CommandType, ExecutionResults> entry: resultsMap.entrySet()) {
             stringBuilder.append(entry.getKey());
             stringBuilder.append('\n');
             stringBuilder.append(entry.getValue());
-            stringBuilder.append('\n');
             stringBuilder.append('\n');
         }
 

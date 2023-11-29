@@ -6,7 +6,5 @@ public enum CommandType {
     DELETE,
     INSERT,
     DELETE_TABLE,
-    DELETE_DATABASE,
     CREATE_TABLE,
-    CREATE_DATABASE
 }
