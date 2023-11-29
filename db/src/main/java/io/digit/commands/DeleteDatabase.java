@@ -3,9 +3,18 @@ package io.digit.commands;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DeleteDatabase implements Command{
+public class DeleteDatabase implements Command<Boolean> {
     @Override
-    public void execute(Statement statement) throws SQLException {
-        statement.execute("DROP DATABASE db;");
+    public Statement prepareStatement(java.sql.Connection connection, int iteration) throws SQLException {
+        return connection.createStatement();
+    }
+    @Override
+    public Object execute(Statement statement, int iteration) throws SQLException {
+        return Boolean.TRUE.equals(statement.execute(String.format("DROP DATABASE test%s.db;", iteration)));
+    }
+
+    @Override
+    public Boolean interpretResults(Object input) {
+        return (Boolean) input;
     }
 }

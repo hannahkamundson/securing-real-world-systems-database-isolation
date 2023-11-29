@@ -33,9 +33,9 @@ public class ProcessIsolationSandbox implements SandboxCommand {
         while (!isReady) {
             try {
                 isReady = db.ready();
-                log.info("The database process is ready");
+                log.info("{}: The database process is ready", App.PID);
             } catch (Exception e) {
-                log.info("Waiting for the database process to be ready");
+                log.info("{}: Waiting for the database process to be ready", App.PID);
 
                 // Ignore and give it 1 second to spin up before trying again
                 Thread.sleep(1000);
@@ -64,7 +64,7 @@ public class ProcessIsolationSandbox implements SandboxCommand {
         return (DatabaseRPC) factory.newInstance(DatabaseRPC.class);
     }
 
-    private static Process createDatabaseProcess() throws IOException {
+    private static void createDatabaseProcess() throws IOException {
         ProcessBuilder builder = new ProcessBuilder()
                 // TODO: Don't hardcode the jar path
                 .command("java", "-jar", "/home/hannah/Documents/Repos/securing-real-world-systems-database-isolation/db/target/db-1.0-SNAPSHOT.jar")
@@ -72,20 +72,19 @@ public class ProcessIsolationSandbox implements SandboxCommand {
                 .redirectInput(ProcessBuilder.Redirect.INHERIT)
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-        log.info("Starting process");
+        log.info("{}: Starting process", App.PID);
 
         Process databaseProcess = builder.start();
 
-        log.info("Process PID: {}", databaseProcess.pid());
+        log.info("{}: Database process PID: {}", App.PID, databaseProcess.pid());
 
         // Make sure the child process is killed on shutdown
         Thread closeChildThread = new Thread(() -> {
-            log.info("Shutting down the database process");
+            log.info("{}: Shutting down the database process", App.PID);
             databaseProcess.destroy();
         });
 
         Runtime.getRuntime().addShutdownHook(closeChildThread);
 
-        return databaseProcess;
     }
 }

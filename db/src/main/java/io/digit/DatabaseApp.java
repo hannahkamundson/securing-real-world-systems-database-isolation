@@ -12,13 +12,14 @@ import java.io.IOException;
 @Slf4j
 public class DatabaseApp {
     private static final int PORT = 8080;
+    public static final long PID = ProcessHandle.current().pid();
 
     public static void main(String[] args) throws XmlRpcException, IOException {
-        log.info("Starting process");
+        log.info("{}: Starting process", DatabaseApp.PID);
         // Create the handler mapping to our class that handles it
         PropertyHandlerMapping propertyHandlerMapping = new PropertyHandlerMapping();
         // Create a new process factory, so we can maintain state across rpc calls
-        DatabaseRPCImpl databaseRPC = new DatabaseRPCImpl();
+        DatabaseRPCImpl databaseRPC = new DatabaseRPCImpl(DatabaseApp.PID);
         propertyHandlerMapping.setRequestProcessorFactoryFactory(new ProcessorFactoryFactory(databaseRPC));
         propertyHandlerMapping.setVoidMethodEnabled(true);
         propertyHandlerMapping.addHandler(DatabaseRPC.class.getName(), DatabaseRPC.class);
@@ -32,7 +33,7 @@ public class DatabaseApp {
         serverConfig.setEnabledForExtensions(true);
         serverConfig.setContentLengthOptional(false);
 
-        log.info("Server starting");
+        log.info("{}: Server starting", DatabaseApp.PID);
 
         webServer.start();
     }

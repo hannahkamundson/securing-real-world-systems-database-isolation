@@ -1,10 +1,12 @@
 package io.digit;
 
+import io.digit.commands.Command;
+
 public interface DatabaseRPC {
     /**
      * Run the given command.
      */
-    void run(String commandName);
+    Object run(Command command, int iteration);
 
     /**
      * Is the system ready?

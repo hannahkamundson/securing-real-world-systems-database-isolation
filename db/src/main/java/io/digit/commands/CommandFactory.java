@@ -2,7 +2,7 @@ package io.digit.commands;
 
 public class CommandFactory {
 
-    public static Command create(CommandType type) {
+    public static Command<?> create(CommandType type) {
         switch (type) {
             case CONNECTION:
                 return new Connection();
